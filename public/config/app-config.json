@@ -1,0 +1,42 @@
+{
+  "apiBaseUrl": "http://127.0.0.1:4000",
+  "columns": [
+    {
+      "accessorKey": "AssetName",
+      "header": "Asset Name",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "URN",
+      "header": "URN",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "status",
+      "header": "Status",
+      "type": "select",
+      "filter": true,
+      "options": ["MIGRATION_COMPLETED", "MIGRATION_FAILED", "PENDING"]
+    },
+    {
+      "accessorKey": "barcode",
+      "header": "Tape Barcode",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "size",
+      "header": "Size GB",
+      "type": "number",
+      "filter": true
+    },
+    {
+      "accessorKey": "lastUpdateDate",
+      "header": "Last Update Date",
+      "type": "date",
+      "filter": true
+    }
+  ]
+}
