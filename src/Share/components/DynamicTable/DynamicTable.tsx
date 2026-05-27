@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
   useReactTable,
   type PaginationState,
   type SortingState,
@@ -15,6 +13,7 @@ import {
 import { TableResizeHandle } from "@/Share/components/DynamicTable/TableResizeHandle";
 import { DynamicTableFilter } from "./DynamicTableFilter";
 import { TablePagination } from "./TablePagination";
+import { useRowKeyboardNavigation } from "@/Share/components/handleCellKeyDown";
 
 type ColumnConfig = {
   accessorKey: string;
@@ -22,17 +21,24 @@ type ColumnConfig = {
   type: "text" | "number" | "select" | "date";
   filter?: boolean;
   options?: string[];
+  size?: number;
   width?: number;
+  minSize?: number;
+  maxSize?: number;
 };
 
 type TableConfig = {
-  columns: ColumnConfig[];
-}; 
+  migrationColumns: ColumnConfig[];
+  markerColumns: ColumnConfig[];
+};
+
+type ColumnConfigKey = "migrationColumns" | "markerColumns";
 
 type DynamicTableProps = {
   data: any[];
   rowCount: number;
   configUrl?: string;
+  columnKey: ColumnConfigKey;
   isLoading?: boolean;
 
   pagination: PaginationState;
@@ -43,12 +49,17 @@ type DynamicTableProps = {
 
   sorting: SortingState;
   onSortingChange: OnChangeFn<SortingState>;
+  onRowDoubleClick?: (rowData: any) => void;
+  displayMenu?: (e: React.MouseEvent<HTMLTableRowElement>, rowData: any) => void;
+  navigationdisplay?: boolean;
+  removeFilters?: boolean;
 };
 
 export function DynamicTable({
   data,
   rowCount,
   configUrl = "/config/migration-table-config.json",
+  columnKey,
   isLoading = false,
   pagination,
   onPaginationChange,
@@ -56,10 +67,15 @@ export function DynamicTable({
   onColumnFiltersChange,
   sorting,
   onSortingChange,
+  onRowDoubleClick,
+  displayMenu,
+  navigationdisplay = true,
+  removeFilters = false,
 }: DynamicTableProps) {
-  const [config, setConfig] = useState<TableConfig | null>(null);  
-
+  const [config, setConfig] = useState<TableConfig | null>(null);
   const tableRef = useRef<HTMLTableElement | null>(null);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(0);
+
 
   useEffect(() => {
     fetch(configUrl)
@@ -78,15 +94,21 @@ export function DynamicTable({
       });
   }, [configUrl]);
 
-  const columns = useMemo<ColumnDef<any>[]>(() => {
-    if (!config?.columns) return [];
 
-    return config.columns.map((col) => ({
+  const selectedColumns = useMemo(() => {
+    if (!config) return [];
+    return config[columnKey] ?? [];
+  }, [config, columnKey]);
+
+  const columns = useMemo<ColumnDef<any>[]>(() => {
+    if (!selectedColumns.length) return [];
+
+    return selectedColumns.map((col) => ({
       accessorKey: col.accessorKey,
       header: col.header,
-      size: col.width ?? 180,
-      minSize: 80,
-      maxSize: 600,
+      size: col.size ?? col.width ?? 180,
+      minSize: col.minSize ?? 80,
+      maxSize: col.maxSize ?? 600,
 
       cell: ({ getValue }) => {
         const value = getValue();
@@ -105,34 +127,14 @@ export function DynamicTable({
 
         return String(value);
       },
-
-      filterFn: (row, columnId, filterValue) => {
-        const rowValue = row.getValue(columnId);
-
-        if (!filterValue) return true;
-
-        if (col.type === "select") {
-          return rowValue === filterValue;
-        }
-
-        if (col.type === "number") {
-          return String(rowValue).includes(String(filterValue));
-        }
-
-        if (col.type === "date") {
-          return String(rowValue).startsWith(String(filterValue));
-        }
-
-        return String(rowValue ?? "")
-          .toLowerCase()
-          .includes(String(filterValue).toLowerCase());
-      },
     }));
-  }, [config, isLoading]);
+  }, [selectedColumns, isLoading]);
 
   const tableData = useMemo(() => {
     if (isLoading) {
-      return Array.from({ length: pagination.pageSize }, () => ({}));
+      return Array.from({ length: pagination.pageSize }, (_, index) => ({
+        id: `loading-${index}`,
+      }));
     }
 
     return data ?? [];
@@ -142,6 +144,8 @@ export function DynamicTable({
     data: tableData,
     columns,
 
+    getRowId: (row, index) => String(row.id ?? index),
+
     state: {
       columnFilters,
       sorting,
@@ -150,17 +154,43 @@ export function DynamicTable({
 
     columnResizeMode: "onChange",
 
-    onColumnFiltersChange: onColumnFiltersChange,
-    onSortingChange: onSortingChange,
+    onColumnFiltersChange,
+    onSortingChange,
     onPaginationChange,
 
     manualPagination: true,
+    manualFiltering: true,
+    manualSorting: true,
+
     rowCount,
 
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (table.getRowModel().rows.length === 0) return;
+
+    setSelectedRowIndex(0);
+
+    window.setTimeout(() => {
+      const firstRow = tableRef.current?.querySelector<HTMLTableRowElement>(
+        `[data-row-index="0"]`
+      );
+
+      firstRow?.focus({ preventScroll: true });
+    }, 100);
+  }, [columnFilters, isLoading, table.getRowModel().rows.length]);
+
+  useRowKeyboardNavigation({
+    tableRef,
+    autoFocusFirstRow: !isLoading && table.getRowModel().rows.length > 0,
+    focusDependency: `${pagination.pageIndex}-${table.getRowModel().rows.length}`,
+    setSelectedRowIndex,
+    rowCount: table.getRowModel().rows.length,
+    navigationDelay: 90,
+  });
+
 
   if (!config) {
     return (
@@ -171,8 +201,8 @@ export function DynamicTable({
   }
 
   return (
-    <div className="flex h-full w-full flex-col rounded-2xl border border-slate-700 bg-slate-900 p-4">
-      <div className="min-h-0 flex-1 overflow-auto">
+    <div className="flex h-full w-full min-w-0 flex-col rounded-2xl border border-slate-700 bg-slate-900 p-4">
+      <div className="min-h-0 w-full flex-1 overflow-auto">
         <table
           ref={tableRef}
           className="table-fixed border-collapse text-sm"
@@ -181,11 +211,11 @@ export function DynamicTable({
             minWidth: `${table.getCenterTotalSize()}px`,
           }}
         >
-          <thead>
+          <thead className="sticky top-0 z-10 bg-slate-900">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-slate-700">
                 {headerGroup.headers.map((header) => {
-                  const columnConfig = config.columns.find(
+                  const columnConfig = selectedColumns.find(
                     (c) => c.accessorKey === header.column.id
                   );
 
@@ -194,18 +224,20 @@ export function DynamicTable({
                       key={header.id}
                       className="relative select-none whitespace-nowrap border-r border-slate-800 px-3 py-3 text-left font-semibold text-slate-200"
                       style={{
-                        width: header.getSize(),
+                        width: `${header.getSize()}px`,
                       }}
                     >
                       <button
                         type="button"
                         onClick={header.column.getToggleSortingHandler()}
-                        className="flex items-center gap-2"
+                        className="flex w-full items-center gap-2 truncate"
                       >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        <span className="truncate">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </span>
 
                         {{
                           asc: "▲",
@@ -213,12 +245,14 @@ export function DynamicTable({
                         }[header.column.getIsSorted() as string] ?? ""}
                       </button>
 
-                      {columnConfig?.filter && (
+                      {columnConfig?.filter && !removeFilters && (
                         <DynamicTableFilter
                           column={header.column}
-                          filterType={columnConfig?.type}
+                          filterType={columnConfig.type}
+                          options={columnConfig.options}
                         />
                       )}
+
                       <TableResizeHandle header={header} />
                     </th>
                   );
@@ -229,20 +263,49 @@ export function DynamicTable({
 
           <tbody>
             {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, rowIndex) => (
                 <tr
                   key={row.id}
-                  className={`font-medium h-7" odd:bg-[#24303f] even:bg-[#2d3d52] text-white`}
+                  tabIndex={0}
+                  data-row-index={rowIndex}
+                  data-row-id={row.original?.id}
+                  onClick={(e) => {
+                    setSelectedRowIndex(rowIndex);
+                    e.currentTarget.focus({ preventScroll: true });
+                  }}
+                  onDoubleClick={() => {
+                    if (!onRowDoubleClick) return;
+                    onRowDoubleClick(row.original);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    if (displayMenu) {
+                      displayMenu(e, row.original);
+                    }
+                  }}
+                  className={`h-7 font-medium  outline-none 
+                               ${selectedRowIndex === rowIndex && navigationdisplay
+                      ? "bg-[#e0cfb0] text-black"
+                      : rowIndex % 2 === 0
+                        ? "bg-[#24303f] text-white"
+                        : "bg-[#2d3d52] text-white"
+                    }
+                  `}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="whitespace-nowrap px-3 py-3 text-slate-100"
+                      className="whitespace-nowrap border-r border-slate-800 px-3 py-2"
+                      style={{
+                        width: `${cell.column.getSize()}px`,
+                      }}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      <div className="truncate" title={String(cell.getValue())}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
                     </td>
                   ))}
                 </tr>
@@ -260,6 +323,7 @@ export function DynamicTable({
           </tbody>
         </table>
       </div>
+
       <TablePagination table={table} />
     </div>
   );

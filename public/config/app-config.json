@@ -1,9 +1,114 @@
 {
   "apiBaseUrl": "http://127.0.0.1:4000",
-  "columns": [
+  "migrationColumns": [
     {
       "accessorKey": "AssetName",
       "header": "Asset Name",
+      "type": "text",
+      "filter": true
+    }, 
+    {
+      "accessorKey": "URIAssetID",
+      "header": "URI Asset ID",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "FLX_AssetID",
+      "header": "FLX Asset ID",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "status",
+      "header": "Status",
+      "type": "select",
+      "filter": true,
+      "options": [
+        "MIGRATION_COMPLETED",
+        "MIGRATION_FAILED",
+        "PENDING"
+      ]
+    },
+    {
+      "accessorKey": "assetTransferedDate",
+      "header": "Asset Transfer Date",
+      "type": "date",
+      "filter": true
+    },
+    {
+      "accessorKey": "metadataCreated",
+      "header": "Metadata Created",
+      "type": "date",
+      "filter": true
+    },
+    {
+      "accessorKey": "metadataModified",
+      "header": "Metadata Modified",
+      "type": "date",
+      "filter": true
+    },
+    {
+      "accessorKey": "URIDevice",
+      "header": "URI Device",
+      "type": "text",
+      "filter": true,
+      "size": 100,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "URILocation",
+      "header": "URI Location",
+      "type": "text",
+      "filter": true,
+      "size": 120,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "URICategory",
+      "header": "URI Category",
+      "type": "text",
+      "filter": true,
+      "size": 100,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "error_message",
+      "header": "Error Message",
+      "type": "text",
+      "filter": true,
+      "size": 100,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "isScaned",
+      "header": "Is Scanned",
+      "type": "text",
+      "filter": true,
+      "size": 100,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "scanStatus",
+      "header": "Scan Status",
+      "type": "text",
+      "filter": true,
+      "size": 180,
+      "minSize": 70
+    },
+    {
+      "accessorKey": "scan_remark",
+      "header": "Scan Remark",
+      "type": "text",
+      "filter": true,
+      "size": 230,
+      "minSize": 70
+    }
+  ],
+  "markerColumns": [
+    {
+      "accessorKey": "marker_id",
+      "header": "Marker ID",
       "type": "text",
       "filter": true
     },
@@ -14,29 +119,48 @@
       "filter": true
     },
     {
-      "accessorKey": "status",
-      "header": "Status",
-      "type": "select",
-      "filter": true,
-      "options": ["MIGRATION_COMPLETED", "MIGRATION_FAILED", "PENDING"]
-    },
-    {
-      "accessorKey": "barcode",
-      "header": "Tape Barcode",
+      "accessorKey": "Name",
+      "header": "Name",
       "type": "text",
       "filter": true
     },
     {
-      "accessorKey": "size",
-      "header": "Size GB",
-      "type": "number",
+      "accessorKey": "MarkIn",
+      "header": "Mark In",
+      "type": "text",
       "filter": true
     },
     {
-      "accessorKey": "lastUpdateDate",
-      "header": "Last Update Date",
-      "type": "date",
+      "accessorKey": "MarkOut",
+      "header": "Mark Out",
+      "type": "text",
       "filter": true
+    },
+    {
+      "accessorKey": "MarkInTc",
+      "header": "Mark In TC",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "MarkOutTc",
+      "header": "Mark Out TC",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "Description",
+      "header": "Description",
+      "type": "text",
+      "filter": true
+    },
+    {
+      "accessorKey": "UpdatedStatus",
+      "header": "Updated Status",
+      "type": "text",
+      "filter": true,
+      "size": 100,
+      "minSize": 70
     }
   ]
 }

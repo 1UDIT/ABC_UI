@@ -1,29 +1,143 @@
-const tableRef = useRef<HTMLTableElement | null>(null);
+import { useCallback, useEffect, useRef } from "react";
+import type React from "react";
 
-const handleCellKeyDown = (
-  event: React.KeyboardEvent<HTMLTableCellElement>
-) => {
-  const currentCell = event.currentTarget;
+type UseRowKeyboardNavigationProps = {
+  tableRef: React.RefObject<HTMLTableElement | null>;
+  autoFocusFirstRow?: boolean;
+  focusDependency?: unknown;
+  setSelectedRowIndex: React.Dispatch<React.SetStateAction<number>>;
+  rowCount: number;
+  navigationDelay?: number;
+  disabled?: boolean;
+};
 
-  const rowIndex = Number(currentCell.dataset.rowIndex);
-  const colIndex = Number(currentCell.dataset.colIndex);
+function isTypingElement(target: EventTarget | Element | null) {
+  const element = target as HTMLElement | null;
 
-  let nextRow = rowIndex;
-  const nextCol = colIndex;
+  if (!element) return false;
 
-  if (event.key === "ArrowDown") {
-    nextRow = rowIndex + 1;
-  } else if (event.key === "ArrowUp") {
-    nextRow = rowIndex - 1;
-  } else {
-    return;
-  }
+  return (
+    element.tagName === "INPUT" ||
+    element.tagName === "TEXTAREA" ||
+    element.tagName === "SELECT" ||
+    element.isContentEditable
+  );
+}
 
-  event.preventDefault();
+export function useRowKeyboardNavigation({
+  tableRef,
+  autoFocusFirstRow = false,
+  focusDependency,
+  setSelectedRowIndex,
+  rowCount,
+  navigationDelay = 180,
+  disabled = false
+}: UseRowKeyboardNavigationProps) {
+  const lastMoveTimeRef = useRef(0);
+  const hasAutoFocusedRef = useRef(false);
 
-  const nextCell = tableRef.current?.querySelector<HTMLTableCellElement>(
-    `[data-row-index="${nextRow}"][data-col-index="${nextCol}"]`
+  const focusRow = useCallback(
+    (rowIndex: number, shouldScroll = false) => {
+      if (isTypingElement(document.activeElement)) return;
+
+      const row = tableRef.current?.querySelector<HTMLTableRowElement>(
+        `[data-row-index="${rowIndex}"]`
+      );
+
+      if (!row) return;
+
+      row.focus({ preventScroll: true });
+
+      if (shouldScroll) {
+        row.scrollIntoView({
+          block: "center",
+        });
+      }
+    },
+    [tableRef]
   );
 
-  nextCell?.focus();
-};
+  const moveRow = useCallback(
+    (direction: "up" | "down") => {
+      if (rowCount <= 0) return;
+      if (isTypingElement(document.activeElement)) return;
+
+      const now = Date.now();
+
+      if (now - lastMoveTimeRef.current < navigationDelay) {
+        return;
+      }
+
+      lastMoveTimeRef.current = now;
+
+      setSelectedRowIndex((currentIndex) => {
+        let nextIndex = currentIndex;
+
+        if (direction === "down") {
+          nextIndex = Math.min(currentIndex + 1, rowCount - 1);
+        }
+
+        if (direction === "up") {
+          nextIndex = Math.max(currentIndex - 1, 0);
+        }
+
+        window.setTimeout(() => {
+          focusRow(nextIndex, true);
+        }, 0);
+
+        return nextIndex;
+      });
+    },
+    [rowCount, setSelectedRowIndex, focusRow, navigationDelay]
+  );
+
+  // Reset auto focus only when page changes
+  useEffect(() => {
+    hasAutoFocusedRef.current = false;
+  }, [focusDependency]);
+
+  // Auto focus first row only once per page
+  useEffect(() => {
+    if (hasAutoFocusedRef.current) return;
+    if (!autoFocusFirstRow || rowCount <= 0) return;
+    if (isTypingElement(document.activeElement)) return;
+
+    const timer = window.setTimeout(() => {
+      if (isTypingElement(document.activeElement)) return;
+
+      setSelectedRowIndex(0);
+      focusRow(0);
+      hasAutoFocusedRef.current = true;
+    }, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [autoFocusFirstRow, rowCount, setSelectedRowIndex, focusRow]);
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const handleWindowKeyDown = (event: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"]')) return;
+
+      if (isTypingElement(event.target)) return;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        moveRow("down");
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveRow("up");
+      }
+    };
+
+    window.addEventListener("keydown", handleWindowKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleWindowKeyDown);
+    };
+  }, [moveRow, disabled]);
+
+  return {};
+}

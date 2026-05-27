@@ -9,7 +9,12 @@ export async function loadAppConfig(): Promise<AppConfig> {
     return appConfig;
   }
 
-  const response = await fetch("/config/app-config.json");
+  const response = await fetch("/config/app-config.json",
+    {
+      headers: {
+        "Cache-Control": "no-cache"
+      }
+    });
 
   if (!response.ok) {
     throw new Error("Failed to load app config");

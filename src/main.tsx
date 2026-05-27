@@ -20,7 +20,7 @@ const router = createBrowserRouter(
       {/* <Route index path='/' element={<SignIn />} /> */}
       <Route >
         <Route path="/" lazy={() => import("@/features/dashboard/pages/page")}  hydrateFallbackElement /> 
-        <Route path="/markers" lazy={() => import("@/features/migration/pages/page")}  hydrateFallbackElement /> 
+        <Route path="/markers" lazy={() => import("@/features/markers/pages/page")}  hydrateFallbackElement /> 
       </Route>
       {/* <Route path="*" element={<SignIn />} /> */}
     </>

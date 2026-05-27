@@ -1,7 +1,7 @@
 import { axiosClient } from "@/core/api/axiosClient";
 import { API_ENDPOINTS } from "@/core/api/apiEndpoints";
 
-type MigrationListParams = {
+type MarkerListParams = {
   page: number;
   limit: number;
   filters?: Record<string, unknown>;
@@ -11,18 +11,18 @@ type MigrationListParams = {
   }[];
 };
 
-export async function getMigrationData({
+export async function getMarkerData({
   page,
   limit,
   filters = {},
   sorting = [],
-}: MigrationListParams) {
-  // console.log("API page:", page, "limit:", limit);
-  // console.log("API filters:", filters);
-  // console.log("API sorting:", sorting);
+}: MarkerListParams) {
+  console.log("API page:", page, "limit:", limit);
+  console.log("API filters:", filters);
+  console.log("API sorting:", sorting);
 
   const response = await axiosClient.post(
-    API_ENDPOINTS.migration.list,
+    API_ENDPOINTS.markers.list,
     {
       filters,
       sorting,

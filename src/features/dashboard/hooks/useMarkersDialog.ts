@@ -1,23 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
-import { getMigrationData } from "@/features/dashboard/service/migrationApi";
+import { useQuery } from "@tanstack/react-query";  
 import type { PaginationState, SortingState } from "@tanstack/react-table";
+import { getmarkersDataDialog } from "../service/markersApi";
+ 
 
-
-export function useMigrationData(
+export function useMarkersDialogData(
   pagination: PaginationState,
   sorting: SortingState = [],
   filters: Record<string, unknown> = {}
 ) {
   return useQuery({
     queryKey: [
-      "migration-data",
+      "markers-dialog-data",
       pagination.pageIndex,
       pagination.pageSize,
       sorting,
       filters,
     ],
     queryFn: () =>
-      getMigrationData({
+      getmarkersDataDialog({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         sorting,
@@ -25,6 +25,6 @@ export function useMigrationData(
       }),
     staleTime: 0,
     refetchOnWindowFocus: false,
-    refetchInterval: 20000,
+    enabled: !!filters.URN,
   });
 }

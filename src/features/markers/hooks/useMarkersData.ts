@@ -1,23 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMigrationData } from "@/features/dashboard/service/migrationApi";
 import type { PaginationState, SortingState } from "@tanstack/react-table";
+import { getMarkerData } from "../service/markerApi";
 
 
-export function useMigrationData(
+export function useMarkerData(
   pagination: PaginationState,
   sorting: SortingState = [],
   filters: Record<string, unknown> = {}
 ) {
   return useQuery({
     queryKey: [
-      "migration-data",
+      "marker-data",
       pagination.pageIndex,
       pagination.pageSize,
       sorting,
       filters,
     ],
     queryFn: () =>
-      getMigrationData({
+      getMarkerData({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         sorting,
