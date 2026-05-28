@@ -3,62 +3,20 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  type PaginationState,
-  type SortingState,
-  type ColumnFiltersState,
   type ColumnDef,
-  type OnChangeFn,
 } from "@tanstack/react-table";
 
 import { TableResizeHandle } from "@/Share/components/DynamicTable/TableResizeHandle";
 import { DynamicTableFilter } from "./DynamicTableFilter";
 import { TablePagination } from "./TablePagination";
 import { useRowKeyboardNavigation } from "@/Share/components/handleCellKeyDown";
+import type { DynamicTableProps, TableConfig } from "./types";
 
-type ColumnConfig = {
-  accessorKey: string;
-  header: string;
-  type: "text" | "number" | "select" | "date";
-  filter?: boolean;
-  options?: string[];
-  size?: number;
-  width?: number;
-  minSize?: number;
-  maxSize?: number;
-};
-
-type TableConfig = {
-  migrationColumns: ColumnConfig[];
-  markerColumns: ColumnConfig[];
-};
-
-type ColumnConfigKey = "migrationColumns" | "markerColumns";
-
-type DynamicTableProps = {
-  data: any[];
-  rowCount: number;
-  configUrl?: string;
-  columnKey: ColumnConfigKey;
-  isLoading?: boolean;
-
-  pagination: PaginationState;
-  onPaginationChange: OnChangeFn<PaginationState>;
-
-  columnFilters: ColumnFiltersState;
-  onColumnFiltersChange: OnChangeFn<ColumnFiltersState>;
-
-  sorting: SortingState;
-  onSortingChange: OnChangeFn<SortingState>;
-  onRowDoubleClick?: (rowData: any) => void;
-  displayMenu?: (e: React.MouseEvent<HTMLTableRowElement>, rowData: any) => void;
-  navigationdisplay?: boolean;
-  removeFilters?: boolean;
-};
 
 export function DynamicTable({
   data,
   rowCount,
-  configUrl = "/config/migration-table-config.json",
+  configUrl = `${import.meta.env.BASE_URL}config/app-config.json`,
   columnKey,
   isLoading = false,
   pagination,
@@ -132,13 +90,15 @@ export function DynamicTable({
 
   const tableData = useMemo(() => {
     if (isLoading) {
-      return Array.from({ length: pagination.pageSize }, (_, index) => ({
+      return Array.from({ length: 10 }, (_, index) => ({
         id: `loading-${index}`,
       }));
     }
 
     return data ?? [];
   }, [isLoading, data, pagination.pageSize]);
+
+  console.log("isloading:", isLoading)
 
   const table = useReactTable({
     data: tableData,
@@ -250,6 +210,8 @@ export function DynamicTable({
                           column={header.column}
                           filterType={columnConfig.type}
                           options={columnConfig.options}
+                          calendarMode={columnConfig.calendarMode}
+                          numberOfMonths={columnConfig.numberOfMonths}
                         />
                       )}
 

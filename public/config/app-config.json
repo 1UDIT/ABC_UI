@@ -6,7 +6,7 @@
       "header": "Asset Name",
       "type": "text",
       "filter": true
-    }, 
+    },
     {
       "accessorKey": "URIAssetID",
       "header": "URI Asset ID",
@@ -25,28 +25,41 @@
       "type": "select",
       "filter": true,
       "options": [
+        "PENDING",
+        "TRANSFER_COMPLETED",
+        "TRANSFER_FAILED",
+        "TRANSFER_TO_WATCHER",
+        "TRANSFER_COMPLETED_MOVE_FAILED",
+        "ASSET_CREATED",
+        "METADATA_UPDATED",
+        "METADATA_UPDATE_FAILED",
         "MIGRATION_COMPLETED",
-        "MIGRATION_FAILED",
-        "PENDING"
+        "MIGRATION_FAILED"
       ]
     },
     {
       "accessorKey": "assetTransferedDate",
       "header": "Asset Transfer Date",
       "type": "date",
-      "filter": true
+      "filter": true,
+      "calendarMode": "range",
+      "numberOfMonths": 2
     },
     {
       "accessorKey": "metadataCreated",
       "header": "Metadata Created",
       "type": "date",
-      "filter": true
+      "filter": true,
+      "calendarMode": "range",
+      "numberOfMonths": 2
     },
     {
       "accessorKey": "metadataModified",
       "header": "Metadata Modified",
       "type": "date",
-      "filter": true
+      "filter": true,
+      "calendarMode": "range",
+      "numberOfMonths": 2
     },
     {
       "accessorKey": "URIDevice",

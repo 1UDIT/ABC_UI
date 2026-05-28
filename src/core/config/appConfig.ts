@@ -9,7 +9,7 @@ export async function loadAppConfig(): Promise<AppConfig> {
     return appConfig;
   }
 
-  const response = await fetch("/config/app-config.json",
+  const response = await fetch(`${import.meta.env.BASE_URL}config/app-config.json`,
     {
       headers: {
         "Cache-Control": "no-cache"

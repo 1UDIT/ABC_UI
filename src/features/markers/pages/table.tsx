@@ -75,7 +75,7 @@ export default function MarkerPage() {
             pageIndex: 0,
           }));
         }}
-        configUrl="/config/app-config.json"
+        configUrl={`${import.meta.env.BASE_URL}config/app-config.json`}
         columnKey="markerColumns"
         isLoading={isLoading}
       />

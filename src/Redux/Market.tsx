@@ -1,15 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
-
-interface PaginationState {
-    "filters": {
-        "UUID": string,
-        "migratedObjectSize": string,
-        "sourceName": string,
-        "destinationName": string,
-        "objectName": string,
-        "status": string
-    }
-}
+import { createSlice } from '@reduxjs/toolkit'; 
 
 interface CounterState {
     paginationStore: any;

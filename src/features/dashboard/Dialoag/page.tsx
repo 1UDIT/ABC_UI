@@ -18,8 +18,7 @@ import { DynamicTable } from "@/Share/components/DynamicTable/DynamicTable";
 
 type IndexPopupProps = {
     data: AssetData | null;
-    setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-    openDialog: boolean;
+    setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>; 
 };
 
 function columnFiltersToObject(columnFilters: ColumnFiltersState) {
@@ -38,8 +37,7 @@ function columnFiltersToObject(columnFilters: ColumnFiltersState) {
 
 export default function IndexPopup({
     data,
-    setOpenDialog,
-    openDialog,
+    setOpenDialog, 
 }: IndexPopupProps) {
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
@@ -78,9 +76,7 @@ export default function IndexPopup({
         isLoading,
         isError,
         error,
-    } = useMarkersDialogData(pagination, sorting, backendFilters);
-
-    console.log("openDialog:", openDialog);
+    } = useMarkersDialogData(pagination, sorting, backendFilters); 
 
     return (
         <DialogContent
@@ -140,7 +136,7 @@ export default function IndexPopup({
                                 pageIndex: 0,
                             }));
                         }}
-                        configUrl="/config/app-config.json"
+                        configUrl={`${import.meta.env.BASE_URL}config/app-config.json`}
                         columnKey="markerColumns"
                         isLoading={isLoading}
                         navigationdisplay={false}

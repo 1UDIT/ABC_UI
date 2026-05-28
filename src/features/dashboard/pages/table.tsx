@@ -15,11 +15,11 @@ import {
   Menu,
   Item,
   Separator,
-  Submenu,
   useContextMenu
 } from "react-contexify";
 
 import "react-contexify/dist/ReactContexify.css";
+import { useUpdateMigrationStatus } from "../hooks/useUpdateMigrationStatus";
 const MENU_ID = "menu-id";
 
 function columnFiltersToObject(columnFilters: ColumnFiltersState) {
@@ -48,6 +48,7 @@ export default function MigrationPage() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedRow, setSelectedRow] = useState<AssetData | null>(null);
+  const updateStatusMutation = useUpdateMigrationStatus();
 
   const backendFilters = useMemo(
     () => columnFiltersToObject(columnFilters),
@@ -78,8 +79,19 @@ export default function MigrationPage() {
     id: MENU_ID
   });
 
-  function handleItemClick() {
-    console.log("Context menu item clicked for row:", selectedRow);
+  function handleItemClick() { 
+    const urn = selectedRow?.URN;
+    const status = selectedRow?.status;
+
+    if (!urn || !status) {
+      console.warn("URN or status missing", selectedRow);
+      return;
+    }
+
+    updateStatusMutation.mutate({"filters":{
+      "URN": urn,
+      status,
+    }});
   }
 
   function displayMenu(e: React.MouseEvent<HTMLTableRowElement>, rowData: AssetData) {
@@ -116,26 +128,23 @@ export default function MigrationPage() {
             pageIndex: 0,
           }));
         }}
-        configUrl="/config/app-config.json"
+        configUrl={`${import.meta.env.BASE_URL}config/app-config.json`}
         columnKey="migrationColumns"
         isLoading={isLoading}
         onRowDoubleClick={onRowDoubleClick}
-        displayMenu={displayMenu}  
+        displayMenu={displayMenu}
       />
       {
         openDialog && (
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <Suspense fallback={""}>
-              <IndexPopup data={selectedRow} setOpenDialog={setOpenDialog} openDialog={openDialog} />
+              <IndexPopup data={selectedRow} setOpenDialog={setOpenDialog} />
             </Suspense>
           </Dialog>
         )
       }
       <Menu id={MENU_ID}>
-        <Item onClick={() => handleItemClick()}>Action 1</Item>
-        <Item onClick={() => handleItemClick()}>Action 2</Item>
-        <Separator />
-        <Item onClick={() => handleItemClick()}>Action 3</Item>
+        <Item onClick={() => handleItemClick()}>Action 1</Item> 
       </Menu>
     </div>
   );

@@ -1,21 +1,18 @@
 import {
     Sidebar,
-    SidebarContent,
-    SidebarFooter,
+    SidebarContent, 
     SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
+    SidebarGroupContent, 
     SidebarHeader,
     SidebarInset,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
+    SidebarMenuItem, 
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {  useEffect, useState, type ReactNode } from "react";
 import {
     Breadcrumb,
     BreadcrumbItem,
