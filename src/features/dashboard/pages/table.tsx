@@ -14,27 +14,21 @@ const IndexPopup = lazy(() => import("@/features/dashboard/Dialoag/page"));
 import {
   Menu,
   Item,
-  Separator,
   useContextMenu
 } from "react-contexify";
 
 import "react-contexify/dist/ReactContexify.css";
 import { useUpdateMigrationStatus } from "../hooks/useUpdateMigrationStatus";
+import { columnFiltersToObject } from "../hooks/useColumnFiltersToObject";
+import { getLast24HoursFilter } from "@/Share/hooks/getLast24HoursFilter";
 const MENU_ID = "menu-id";
 
-function columnFiltersToObject(columnFilters: ColumnFiltersState) {
-  return columnFilters.reduce<Record<string, unknown>>((acc, filter) => {
-    if (
-      filter.value !== undefined &&
-      filter.value !== null &&
-      String(filter.value).trim() !== ""
-    ) {
-      acc[filter.id] = filter.value;
-    }
-
-    return acc;
-  }, {});
-}
+const RESTATUS_ALLOWED_STATUS = [
+  "TRANSFER_FAILED",
+  "METADATA_UPDATE_FAILED",
+  "MIGRATION_FAILED",
+  "TRANSFER_COMPLETED_MOVE_FAILED"
+];
 
 
 
@@ -45,15 +39,27 @@ export default function MigrationPage() {
   });
   const [openDialog, setOpenDialog] = useState(false);
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [selectedRow, setSelectedRow] = useState<AssetData | null>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const updateStatusMutation = useUpdateMigrationStatus();
+  const [selectedRow, setSelectedRow] = useState<AssetData | null>(null);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+    {
+      id: "assetTransferedDate",
+      value: getLast24HoursFilter(),
+    },
+  ]);
 
   const backendFilters = useMemo(
     () => columnFiltersToObject(columnFilters),
     [columnFilters]
   );
+
+  const canRestatus =
+    selectedRows.length > 0 &&
+    selectedRows.every((row) =>
+      RESTATUS_ALLOWED_STATUS.includes(row.status ?? row.STATUS ?? "")
+    );
 
   const { data, isLoading, isError, error } = useMigrationData(
     pagination,
@@ -79,25 +85,51 @@ export default function MigrationPage() {
     id: MENU_ID
   });
 
-  function handleItemClick() { 
-    const urn = selectedRow?.URN;
-    const status = selectedRow?.status;
+  function handleItemClick() {
+    const rowsToUpdate = selectedRows.length > 0 ? selectedRows : [];
 
-    if (!urn || !status) {
-      console.warn("URN or status missing", selectedRow);
+    if (rowsToUpdate.length === 0) {
+      console.warn("No rows selected");
       return;
     }
 
-    updateStatusMutation.mutate({"filters":{
-      "URN": urn,
-      status,
-    }});
+    const payloadRows = rowsToUpdate
+      .map((row) => ({
+        URN: row?.URN,
+        status: row?.status ?? row?.STATUS,
+      }))
+      .filter((row) => row.URN && row.status);
+
+
+    if (payloadRows.length === 0) {
+      console.warn("URN or status missing", rowsToUpdate);
+      return;
+    }
+
+    updateStatusMutation.mutate({
+      filters: payloadRows,
+    });
   }
 
-  function displayMenu(e: React.MouseEvent<HTMLTableRowElement>, rowData: AssetData) {
-    // put whatever custom logic you need
-    // you can even decide to not display the Menu
-    setSelectedRow(rowData);
+
+  function displayMenu(
+    e: React.MouseEvent<HTMLTableRowElement>,
+    rowData: AssetData
+  ) {
+    e.preventDefault();
+
+    const rowUrn = rowData?.URN;
+
+    const isAlreadySelected = selectedRows.some(
+      (row) => row?.URN === rowUrn
+    );
+
+    // If right-clicked row is already part of selected rows,
+    // keep multiple selection.
+    if (!isAlreadySelected) {
+      setSelectedRows([rowData]);
+    }
+
     show({
       event: e,
     });
@@ -133,6 +165,7 @@ export default function MigrationPage() {
         isLoading={isLoading}
         onRowDoubleClick={onRowDoubleClick}
         displayMenu={displayMenu}
+        onSelectedRowsChange={setSelectedRows}
       />
       {
         openDialog && (
@@ -144,7 +177,7 @@ export default function MigrationPage() {
         )
       }
       <Menu id={MENU_ID}>
-        <Item onClick={() => handleItemClick()}>Action 1</Item> 
+        <Item onClick={() => handleItemClick()} disabled={!canRestatus}>Re-status</Item>
       </Menu>
     </div>
   );

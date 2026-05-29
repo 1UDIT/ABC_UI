@@ -7,20 +7,21 @@ import type {
 
 import { DynamicTable } from "@/Share/components/DynamicTable/DynamicTable"; 
 import { useMarkerData } from "../hooks/useMarkersData";
+import { columnFiltersToObject } from "@/features/dashboard/hooks/useColumnFiltersToObject";
 
-function columnFiltersToObject(columnFilters: ColumnFiltersState) {
-  return columnFilters.reduce<Record<string, unknown>>((acc, filter) => {
-    if (
-      filter.value !== undefined &&
-      filter.value !== null &&
-      String(filter.value).trim() !== ""
-    ) {
-      acc[filter.id] = filter.value;
-    }
+// function columnFiltersToObject(columnFilters: ColumnFiltersState) {
+//   return columnFilters.reduce<Record<string, unknown>>((acc, filter) => {
+//     if (
+//       filter.value !== undefined &&
+//       filter.value !== null &&
+//       String(filter.value).trim() !== ""
+//     ) {
+//       acc[filter.id] = filter.value;
+//     }
 
-    return acc;
-  }, {});
-}
+//     return acc;
+//   }, {});
+// } 
 
 export default function MarkerPage() {
   const [pagination, setPagination] = useState<PaginationState>({

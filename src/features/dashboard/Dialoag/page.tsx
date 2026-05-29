@@ -15,25 +15,26 @@ import type {
 import type { AssetData } from "../Type/AssetData";
 import { useMarkersDialogData } from "../hooks/useMarkersDialog";
 import { DynamicTable } from "@/Share/components/DynamicTable/DynamicTable";
+import { columnFiltersToObject } from "../hooks/useColumnFiltersToObject";
 
 type IndexPopupProps = {
     data: AssetData | null;
     setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>; 
 };
 
-function columnFiltersToObject(columnFilters: ColumnFiltersState) {
-    return columnFilters.reduce<Record<string, unknown>>((acc, filter) => {
-        if (
-            filter.value !== undefined &&
-            filter.value !== null &&
-            String(filter.value).trim() !== ""
-        ) {
-            acc[filter.id] = filter.value;
-        }
+// function columnFiltersToObject(columnFilters: ColumnFiltersState) {
+//     return columnFilters.reduce<Record<string, unknown>>((acc, filter) => {
+//         if (
+//             filter.value !== undefined &&
+//             filter.value !== null &&
+//             String(filter.value).trim() !== ""
+//         ) {
+//             acc[filter.id] = filter.value;
+//         }
 
-        return acc;
-    }, {});
-}
+//         return acc;
+//     }, {});
+// } 
 
 export default function IndexPopup({
     data,

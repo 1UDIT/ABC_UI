@@ -22,8 +22,8 @@
     {
       "accessorKey": "status",
       "header": "Status",
-      "type": "select",
       "filter": true,
+      "type": "multiSelect",
       "options": [
         "PENDING",
         "TRANSFER_COMPLETED",

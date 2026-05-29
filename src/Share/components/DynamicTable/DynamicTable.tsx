@@ -11,7 +11,7 @@ import { DynamicTableFilter } from "./DynamicTableFilter";
 import { TablePagination } from "./TablePagination";
 import { useRowKeyboardNavigation } from "@/Share/components/handleCellKeyDown";
 import type { DynamicTableProps, TableConfig } from "./types";
-
+import { useRowMultiSelection } from "@/Share/hooks/useRowMultiSelection";
 
 export function DynamicTable({
   data,
@@ -29,6 +29,7 @@ export function DynamicTable({
   displayMenu,
   navigationdisplay = true,
   removeFilters = false,
+  onSelectedRowsChange
 }: DynamicTableProps) {
   const [config, setConfig] = useState<TableConfig | null>(null);
   const tableRef = useRef<HTMLTableElement | null>(null);
@@ -97,8 +98,7 @@ export function DynamicTable({
 
     return data ?? [];
   }, [isLoading, data, pagination.pageSize]);
-
-  console.log("isloading:", isLoading)
+ 
 
   const table = useReactTable({
     data: tableData,
@@ -142,15 +142,46 @@ export function DynamicTable({
     }, 100);
   }, [columnFilters, isLoading, table.getRowModel().rows.length]);
 
+  const tableRows = table.getRowModel().rows;
+
+  const {
+    selectedRowIds, 
+    isRowSelected, 
+    handleRowSelection,
+    clearSelection,
+  } = useRowMultiSelection({
+    rows: tableRows,
+    getRowId: (row) => row.id,
+  });
+
   useRowKeyboardNavigation({
     tableRef,
-    autoFocusFirstRow: !isLoading && table.getRowModel().rows.length > 0,
-    focusDependency: `${pagination.pageIndex}-${table.getRowModel().rows.length}`,
+    autoFocusFirstRow: navigationdisplay && !isLoading && table.getRowModel().rows.length > 0,
+    focusDependency: pagination.pageIndex,
     setSelectedRowIndex,
     rowCount: table.getRowModel().rows.length,
     navigationDelay: 90,
+    disabled: !navigationdisplay,
+    onKeyboardMove: clearSelection,
   });
 
+
+
+  const selectedRowIdsKey = useMemo(() => {
+    return Array.from(selectedRowIds).sort().join("|");
+  }, [selectedRowIds]);
+
+  useEffect(() => {
+    if (!onSelectedRowsChange) return;
+
+    const selectedRows = table
+      .getRowModel()
+      .rows
+      .filter((row) => selectedRowIds.has(row.id))
+      .map((row) => row.original);
+
+    onSelectedRowsChange(selectedRows);
+  }, [selectedRowIdsKey, onSelectedRowsChange]);
 
   if (!config) {
     return (
@@ -231,9 +262,14 @@ export function DynamicTable({
                   tabIndex={0}
                   data-row-index={rowIndex}
                   data-row-id={row.original?.id}
+                  // onClick={(e) => {
+                  //   setSelectedRowIndex(rowIndex);
+                  //   e.currentTarget.focus({ preventScroll: true });
+                  // }}
                   onClick={(e) => {
                     setSelectedRowIndex(rowIndex);
                     e.currentTarget.focus({ preventScroll: true });
+                    handleRowSelection(e, row, rowIndex);
                   }}
                   onDoubleClick={() => {
                     if (!onRowDoubleClick) return;
@@ -246,13 +282,22 @@ export function DynamicTable({
                     }
                   }}
                   className={`h-7 font-medium  outline-none 
-                               ${selectedRowIndex === rowIndex && navigationdisplay
+                            ${isRowSelected(row.id)
                       ? "bg-[#e0cfb0] text-black"
-                      : rowIndex % 2 === 0
-                        ? "bg-[#24303f] text-white"
-                        : "bg-[#2d3d52] text-white"
-                    }
-                  `}
+                      : selectedRowIndex === rowIndex && navigationdisplay
+                        ? "bg-[#e0cfb0] text-black"
+                        : rowIndex % 2 === 0
+                          ? "bg-[#24303f] text-white"
+                          : "bg-[#2d3d52] text-white"
+                    }`}
+                // className={`h-7 font-medium  outline-none 
+                //              ${selectedRowIndex === rowIndex && navigationdisplay
+                //     ? "bg-[#e0cfb0] text-black"
+                //     : rowIndex % 2 === 0
+                //       ? "bg-[#24303f] text-white"
+                //       : "bg-[#2d3d52] text-white"
+                //   }
+                // `}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td

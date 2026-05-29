@@ -9,6 +9,7 @@ type UseRowKeyboardNavigationProps = {
   rowCount: number;
   navigationDelay?: number;
   disabled?: boolean;
+  onKeyboardMove?: () => void;
 };
 
 function isTypingElement(target: EventTarget | Element | null) {
@@ -31,7 +32,8 @@ export function useRowKeyboardNavigation({
   setSelectedRowIndex,
   rowCount,
   navigationDelay = 180,
-  disabled = false
+  disabled = false,
+  onKeyboardMove
 }: UseRowKeyboardNavigationProps) {
   const lastMoveTimeRef = useRef(0);
   const hasAutoFocusedRef = useRef(false);
@@ -59,6 +61,7 @@ export function useRowKeyboardNavigation({
 
   const moveRow = useCallback(
     (direction: "up" | "down") => {
+      if (disabled) return;
       if (rowCount <= 0) return;
       if (isTypingElement(document.activeElement)) return;
 
@@ -69,6 +72,8 @@ export function useRowKeyboardNavigation({
       }
 
       lastMoveTimeRef.current = now;
+
+      onKeyboardMove?.();
 
       setSelectedRowIndex((currentIndex) => {
         let nextIndex = currentIndex;
@@ -88,7 +93,14 @@ export function useRowKeyboardNavigation({
         return nextIndex;
       });
     },
-    [rowCount, setSelectedRowIndex, focusRow, navigationDelay]
+    [
+      disabled,
+      rowCount,
+      setSelectedRowIndex,
+      focusRow,
+      navigationDelay,
+      onKeyboardMove,
+    ]
   );
 
   // Reset auto focus only when page changes

@@ -1,9 +1,11 @@
 import { axiosClient } from "@/core/api/axiosClient";
-import { API_ENDPOINTS } from "@/core/api/apiEndpoints";
+import { API_ENDPOINTS } from "@/core/api/apiEndpoints"; 
 
 export type UpdateStatusPayload = {
-  URN: string;
-  status: string;
+  filters: {
+    URN: string;
+    status: string;
+  }[]
 };
 
 export async function updateMigrationStatus(payload: UpdateStatusPayload) {

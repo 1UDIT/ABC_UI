@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Column } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
-import { format } from "date-fns"; 
+import { format } from "date-fns";
 
 import type { FilterType } from "./types";
 import { useDebounce } from "@/Share/hooks/useDebounce";
@@ -11,7 +11,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/popover"; 
 
 type CalendarMode = "single" | "range";
 
@@ -61,6 +61,7 @@ export function DynamicTableFilter<T>({
   useEffect(() => {
     if (
       filterType === "select" ||
+      filterType === "multiSelect" ||
       filterType === "none" ||
       (filterType === "date" && calendarMode === "range")
     ) {
@@ -217,6 +218,94 @@ export function DynamicTableFilter<T>({
             }}
             className="rounded-md bg-[#020817] text-white"
           />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  if (filterType === "multiSelect") {
+    const selectedValues = Array.isArray(tableValue) ? tableValue : [];
+
+    const toggleValue = (item: string) => {
+      const exists = selectedValues.includes(item);
+
+      const nextValues = exists
+        ? selectedValues.filter((value) => value !== item)
+        : [...selectedValues, item];
+
+      column.setFilterValue(nextValues);
+    };
+
+    // const clearMultiSelect = (e: React.MouseEvent<HTMLButtonElement>) => {
+    //   e.preventDefault();
+    //   e.stopPropagation();
+
+    //   column.setFilterValue([]);
+    // };
+
+    return (
+      <Popover>
+        <div
+          className="relative mt-2"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-md border border-slate-700 bg-slate-950 px-2 py-1 pr-7 text-left text-xs font-medium text-slate-200 outline-none hover:border-blue-400"
+            >
+              <span className="truncate">
+                {selectedValues.length > 0
+                  ? `${selectedValues.length} selected`
+                  : "Select"}
+              </span>
+            </button>
+          </PopoverTrigger>
+
+          {selectedValues.length > 0 && (
+            <button
+              type="button"
+              onClick={clearFilter}
+              className="absolute right-1 top-1/2 -translate-y-1/2 rounded px-1 text-xs text-slate-400 hover:bg-slate-700 hover:text-white"
+              title="Clear filter"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        <PopoverContent
+          align="start"
+          side="bottom"
+          sideOffset={6}
+          collisionPadding={12}
+          className="z-[99999] w-64 rounded-md border border-slate-700 bg-slate-950 p-2 text-slate-200 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        > 
+          <div className="max-h-56 space-y-1 overflow-auto">
+            {options.map((item) => {
+              const checked = selectedValues.includes(item);
+
+              return (
+                <label
+                  key={item}
+                  className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs hover:bg-slate-800 ${checked ? "bg-blue-900/40 text-white" : "text-slate-300"
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleValue(item)}
+                    className="h-3.5 w-3.5 accent-blue-600"
+                  />
+
+                  <span className="truncate">{item}</span>
+                </label>
+              );
+            })}
+          </div>
         </PopoverContent>
       </Popover>
     );

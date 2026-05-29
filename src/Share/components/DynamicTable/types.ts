@@ -5,7 +5,13 @@ import type {
   OnChangeFn
 } from "@tanstack/react-table";
 
-export type FilterType = "text" | "select" | "number" | "date" | "none";
+export type FilterType =
+  | "text"
+  | "number"
+  | "select"
+  | "multiSelect"
+  | "date"
+  | "none";
 
 export type DynamicColumnConfig<T> = {
   key: keyof T | string;
@@ -16,7 +22,7 @@ export type DynamicColumnConfig<T> = {
   width?: number;
   options?: string[];
   cell?: (value: any, row: T) => React.ReactNode;
-}; 
+};
 
 type ColumnConfigKey = "migrationColumns" | "markerColumns";
 export type DynamicTableProps = {
@@ -38,6 +44,7 @@ export type DynamicTableProps = {
   displayMenu?: (e: React.MouseEvent<HTMLTableRowElement>, rowData: any) => void;
   navigationdisplay?: boolean;
   removeFilters?: boolean;
+  onSelectedRowsChange?: (rows: any[]) => void;
 };
 
 export type CalendarMode = "single" | "range";
@@ -60,4 +67,3 @@ export type TableConfig = {
   migrationColumns: ColumnConfig[];
   markerColumns: ColumnConfig[];
 };
- 

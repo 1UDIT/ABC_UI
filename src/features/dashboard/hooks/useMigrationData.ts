@@ -25,6 +25,6 @@ export function useMigrationData(
       }),
     staleTime: 0,
     refetchOnWindowFocus: false,
-    refetchInterval: 20000,
+    refetchInterval: 50000,
   });
 }
