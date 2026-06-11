@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/breadcrumb"; 
 import { NavLink, useLocation } from "react-router";  
  
-const basePath = import.meta.env.BASE_URL;
+// const basePath = import.meta.env.BASE_URL;
 
 const items = [
     {
@@ -63,8 +63,8 @@ export function DefaultLayout({ children }: AppSidebarProps) {
             <SidebarProvider>
                 <Sidebar className="bg-[#24303f] text-base font-medium">
                     {/* Logo */}
-                    <div className="block m-auto p-auto pt-2">
-                        <img
+                    <div className="block m-auto p-auto pt-2 h-10">
+                        {/* <img
                             src={`${basePath}img/Logo.png`}
                             alt="logo"
                             style={{ width: "100%", height: "65px" }}
@@ -80,7 +80,7 @@ export function DefaultLayout({ children }: AppSidebarProps) {
                                 }
                             }}
 
-                        />
+                        /> */}
 
                     </div>
                     <SidebarContent>

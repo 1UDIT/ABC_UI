@@ -331,7 +331,7 @@ export function DynamicTable({
         </table>
       </div>
 
-      <TablePagination table={table} />
+      <TablePagination table={table} totalItems={rowCount}/>
     </div>
   );
 }

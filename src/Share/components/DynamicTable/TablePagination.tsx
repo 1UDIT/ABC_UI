@@ -2,9 +2,10 @@ import type { Table } from "@tanstack/react-table";
 
 type TablePaginationProps<TData> = {
   table: Table<TData>;
+  totalItems?: number
 };
 
-export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
+export function TablePagination<TData>({ table, totalItems }: TablePaginationProps<TData>) {
   return (
     <div className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-3 text-sm text-slate-300">
       <div className="flex items-center gap-2">
@@ -70,11 +71,11 @@ export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
       </div>
 
       <div>
-        Showing{" "}
+        Total{" "}
         <strong>
-          {table.getRowModel().rows.length}
+          {totalItems}
         </strong>{" "}
-        rows
+        rows 
       </div>
     </div>
   );
